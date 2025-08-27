@@ -1,7 +1,11 @@
-FROM alpine:3.22.1 as curl
+FROM alpine:3.22.1 AS curl
 
-RUN apk update && apk add build-base c-ares-dev libidn2-dev libpsl-dev nghttp2-dev openssl-dev zlib-dev zstd-dev ca-certificates-bundle
-RUN wget -O - https://curl.se/download/curl-8.15.0.tar.xz | tar -Jx && cd curl-8.15.0
+RUN apk update && apk add build-base c-ares-dev libidn2-dev libpsl-dev nghttp2-dev openssl-dev zlib-dev zstd-dev ca-certificates-bundle perl
+
+WORKDIR /root
+RUN wget -O - https://curl.se/download/curl-8.15.0.tar.xz | tar -Jx
+
+WORKDIR /root/curl-8.15.0
 RUN ./configure \
 	--prefix=/usr \
 	--enable-ares \
@@ -25,17 +29,24 @@ RUN ./configure \
 
 RUN make -j$(nproc) && make install
 
-FROM alpine:3.22.1 as builder
+FROM alpine:3.22.1 AS builder
 RUN apk update && apk add build-base git automake cmake texinfo libtool autoconf linux-headers openssl-libs-static zstd-static nghttp2-static libpsl-static zlib-static libidn2-static libunistring-static curl-dev
 
 COPY --from=curl /usr/lib/libcurl.a /usr/lib/
-COPY libffi.patch txiki.js.patch /tmp
+COPY libffi.patch txiki.js.patch /tmp/
 
-RUN git clone --recursive https://github.com/saghul/txiki.js.git --shallow-submodules && cd txiki.js
-RUN git apply /tmp/txiki.js.patch && cd deps/libffi && git apply /tmp/libffi.patch && cd ../..
+WORKDIR /root
+RUN git clone --recursive https://github.com/saghul/txiki.js.git --shallow-submodules
+
+WORKDIR /root/txiki.js
+COPY HEAD_txiki.js /tmp/HEAD_txiki.js
+RUN git checkout $(cat /tmp/HEAD_txiki.js)
+RUN git apply /tmp/txiki.js.patch && cd deps/libffi && git apply /tmp/libffi.patch
+
 RUN cp /usr/lib/libatomic.a /usr/lib/libatomic.so
 RUN make -j$(nproc)
-RUN cp build/tjs /root/tjs
+RUN strip build/tjs
+
 
 FROM scratch
-COPY --from=builder /root/tjs /
+COPY --from=builder /root/txiki.js/build/tjs /
