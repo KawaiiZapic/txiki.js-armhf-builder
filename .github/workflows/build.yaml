@@ -24,6 +24,7 @@ jobs:
           push: false
           cache-from: type=gha,mode=max
           cache-to: type=gha,mode=max
+          platforms: linux/arm/v7
           outputs: type=local,dest=.
       
       - name: Upload artifacts
