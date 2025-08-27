@@ -1,0 +1,12 @@
+name: Build
+on:
+  push:
+    branches: [ main ]
+jobs:
+  container-test-job:
+    runs-on: ubuntu-latest
+    container:
+      image: alpine:3.22.1
+      options: --platform linux/arm/v7
+    steps:
+      - run: ls
