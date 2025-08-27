@@ -1,0 +1,99 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index a86b92f..b85094d 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -66,8 +66,6 @@ if(BUILD_WITH_MIMALLOC)
+     add_subdirectory(deps/mimalloc EXCLUDE_FROM_ALL)
+ endif()
+ 
+-find_package(CURL REQUIRED)
+-
+ add_library(tjs STATIC
+     src/builtins.c
+     src/curl-utils.c
+@@ -160,7 +158,39 @@ string(TOLOWER ${CMAKE_SYSTEM_NAME} TJS_PLATFORM)
+ target_compile_options(tjs PRIVATE ${tjs_cflags})
+ target_compile_definitions(tjs PRIVATE TJS__PLATFORM="${TJS_PLATFORM}")
+ target_include_directories(tjs PUBLIC src)
+-target_link_libraries(tjs qjs uv_a m3 sqlite3 CURL::libcurl)
++target_link_libraries(tjs qjs uv_a m3 sqlite3)
++
++add_library(libcurl STATIC IMPORTED)
++set_target_properties(libcurl PROPERTIES IMPORTED_LOCATION /usr/lib/libcurl.a)
++
++add_library(libssl STATIC IMPORTED)
++set_target_properties(libssl PROPERTIES IMPORTED_LOCATION /usr/lib/libssl.a)
++
++add_library(libcrypto STATIC IMPORTED)
++set_target_properties(libcrypto PROPERTIES IMPORTED_LOCATION /usr/lib/libcrypto.a)
++
++add_library(libzstd STATIC IMPORTED)
++set_target_properties(libzstd PROPERTIES IMPORTED_LOCATION /usr/lib/libzstd.a)
++
++add_library(libz STATIC IMPORTED)
++set_target_properties(libz PROPERTIES IMPORTED_LOCATION /usr/lib/libz.a)
++
++add_library(libnghttp2 STATIC IMPORTED)
++set_target_properties(libnghttp2 PROPERTIES IMPORTED_LOCATION /usr/lib/libnghttp2.a)
++
++add_library(libpsl STATIC IMPORTED)
++set_target_properties(libpsl PROPERTIES IMPORTED_LOCATION /usr/lib/libpsl.a)
++
++add_library(libcares STATIC IMPORTED)
++set_target_properties(libcares PROPERTIES IMPORTED_LOCATION /usr/lib/libcares.a)
++
++add_library(libunistring STATIC IMPORTED)
++set_target_properties(libunistring PROPERTIES IMPORTED_LOCATION /usr/lib/libunistring.a)
++
++add_library(libidn2 STATIC IMPORTED)
++set_target_properties(libidn2 PROPERTIES IMPORTED_LOCATION /usr/lib/libidn2.a)
++
++target_link_libraries(tjs libcurl libssl libcrypto libzstd libnghttp2 libpsl libcares libz libidn2 libunistring)
+ 
+ if (BUILD_WITH_MIMALLOC)
+     target_compile_definitions(tjs PRIVATE TJS__HAS_MIMALLOC)
+@@ -170,7 +200,7 @@ endif()
+ add_executable(tjs-cli
+     src/cli.c
+ )
+-target_link_libraries(tjs-cli tjs)
++target_link_libraries(tjs-cli tjs "-static")
+ set_target_properties(tjs-cli
+     PROPERTIES OUTPUT_NAME tjs
+ )
+diff --git a/src/sha1.c b/src/sha1.c
+index ac94ad2..0f3a7ed 100644
+--- a/src/sha1.c
++++ b/src/sha1.c
+@@ -281,17 +281,3 @@ void SHA1Final(
+     memset(&finalcount, '\0', sizeof(finalcount));
+ }
+ 
+-void SHA1(
+-    char *hash_out,
+-    const char *str,
+-    int len)
+-{
+-    SHA1_CTX ctx;
+-    unsigned int ii;
+-
+-    SHA1Init(&ctx);
+-    for (ii=0; ii<len; ii+=1)
+-        SHA1Update(&ctx, (const unsigned char*)str + ii, 1);
+-    SHA1Final((unsigned char *)hash_out, &ctx);
+-}
+-
+diff --git a/src/sha1.h b/src/sha1.h
+index 3aba1c5..7e3a2cd 100644
+--- a/src/sha1.h
++++ b/src/sha1.h
+@@ -38,9 +38,4 @@ void SHA1Final(
+     SHA1_CTX * context
+     );
+ 
+-void SHA1(
+-    char *hash_out,
+-    const char *str,
+-    int len);
+-
+ #endif /* SHA1_H */
