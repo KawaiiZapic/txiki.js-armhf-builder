@@ -1,5 +1,5 @@
 diff --git a/CMakeLists.txt b/CMakeLists.txt
-index a86b92f..b85094d 100644
+index a86b92f..fc6f8d0 100644
 --- a/CMakeLists.txt
 +++ b/CMakeLists.txt
 @@ -66,8 +66,6 @@ if(BUILD_WITH_MIMALLOC)
@@ -11,7 +11,19 @@ index a86b92f..b85094d 100644
  add_library(tjs STATIC
      src/builtins.c
      src/curl-utils.c
-@@ -160,7 +158,39 @@ string(TOLOWER ${CMAKE_SYSTEM_NAME} TJS_PLATFORM)
+@@ -144,11 +142,6 @@ if(NOT USE_EXTERNAL_FFI AND NOT MINGW AND NOT APPLE)
+     set_target_properties(libffi_a PROPERTIES IMPORTED_LOCATION ${LIBFFI_STATIC_PATH})
+     target_include_directories(tjs PRIVATE ${TMP_INSTALL_DIR}/usr/local/include)
+     target_link_libraries(tjs libffi_a)
+-else()
+-    find_library(FFI_LIB NAMES libffi ffi REQUIRED)
+-    find_path(FFI_INCLUDE_DIR NAMES ffi.h PATH_SUFFIXES ffi REQUIRED)
+-    target_include_directories(tjs PRIVATE ${FFI_INCLUDE_DIR})
+-    target_link_libraries(tjs ${FFI_LIB})
+ endif()
+ 
+ set_target_properties(tjs PROPERTIES
+@@ -160,7 +153,42 @@ string(TOLOWER ${CMAKE_SYSTEM_NAME} TJS_PLATFORM)
  target_compile_options(tjs PRIVATE ${tjs_cflags})
  target_compile_definitions(tjs PRIVATE TJS__PLATFORM="${TJS_PLATFORM}")
  target_include_directories(tjs PUBLIC src)
@@ -48,11 +60,14 @@ index a86b92f..b85094d 100644
 +add_library(libidn2 STATIC IMPORTED)
 +set_target_properties(libidn2 PROPERTIES IMPORTED_LOCATION /usr/lib/libidn2.a)
 +
-+target_link_libraries(tjs libcurl libssl libcrypto libzstd libnghttp2 libpsl libcares libz libidn2 libunistring)
++add_library(libffi STATIC IMPORTED)
++set_target_properties(libffi PROPERTIES IMPORTED_LOCATION /usr/lib/libffi.a)
++
++target_link_libraries(tjs libcurl libssl libcrypto libzstd libnghttp2 libpsl libcares libz libidn2 libunistring libffi)
  
  if (BUILD_WITH_MIMALLOC)
      target_compile_definitions(tjs PRIVATE TJS__HAS_MIMALLOC)
-@@ -170,7 +200,7 @@ endif()
+@@ -170,7 +198,7 @@ endif()
  add_executable(tjs-cli
      src/cli.c
  )
