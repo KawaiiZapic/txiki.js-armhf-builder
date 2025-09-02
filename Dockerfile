@@ -33,13 +33,12 @@ FROM alpine:3.22.1 AS builder
 RUN apk update && apk add build-base git automake cmake texinfo libtool autoconf linux-headers openssl-libs-static zstd-static nghttp2-static libpsl-static zlib-static libidn2-static libunistring-static curl-dev libffi-dev
 
 COPY --from=curl /usr/lib/libcurl.a /usr/lib/
-COPY txiki.js.patch /tmp/
+COPY txiki.js.patch HEAD_txiki.js /tmp/
 
 WORKDIR /root
 RUN git clone --recursive https://github.com/saghul/txiki.js.git --shallow-submodules
 
 WORKDIR /root/txiki.js
-COPY HEAD_txiki.js /tmp/HEAD_txiki.js
 RUN git checkout $(cat /tmp/HEAD_txiki.js)
 RUN git apply /tmp/txiki.js.patch
 RUN cp /usr/lib/libatomic.a /usr/lib/libatomic.so
