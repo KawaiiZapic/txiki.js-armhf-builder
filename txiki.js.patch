@@ -1,8 +1,8 @@
 diff --git a/CMakeLists.txt b/CMakeLists.txt
-index 4feb79d..5a47e42 100644
+index 4262ce16..a6cf70cc 100644
 --- a/CMakeLists.txt
 +++ b/CMakeLists.txt
-@@ -134,7 +134,7 @@ target_include_directories(tjs PUBLIC src)
+@@ -196,7 +196,7 @@ target_include_directories(tjs PUBLIC src)
  add_executable(tjs-cli
      src/cli.c
  )
@@ -11,19 +11,7 @@ index 4feb79d..5a47e42 100644
  set_target_properties(tjs-cli
      PROPERTIES OUTPUT_NAME tjs
  )
-@@ -185,10 +185,9 @@ if (WIN32)
-     find_package(unofficial-libffi CONFIG REQUIRED)
-     target_link_libraries(tjs PUBLIC unofficial::libffi::libffi)
- else()
--    find_library(FFI_LIB NAMES libffi ffi REQUIRED)
-     find_path(FFI_INCLUDE_DIR NAMES ffi.h PATH_SUFFIXES ffi REQUIRED)
-     target_include_directories(tjs PRIVATE ${FFI_INCLUDE_DIR})
--    target_link_libraries(tjs PUBLIC ${FFI_LIB})
-+    target_link_libraries(tjs PUBLIC /usr/lib/libffi.a)
- endif()
- 
- add_library(ffi-test SHARED
-@@ -241,6 +240,7 @@ set(WAMR_BUILD_LIB_PTHREAD 0)
+@@ -357,6 +357,7 @@ set(WAMR_BUILD_LIB_PTHREAD 0)
  set(WAMR_BUILD_MINI_LOADER 0)
  set(WAMR_DISABLE_HW_BOUND_CHECK 1)
  set(WAMR_DISABLE_STACK_HW_BOUND_CHECK 1)
